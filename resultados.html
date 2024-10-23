@@ -3,167 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultados da Eleição</title>
+    <title>Resultados - Segundo Turno</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Reset básico */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        /* Definindo o estilo global */
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-            line-height: 1.8;
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            color: #00008b;
+            line-height: 1.6;
             margin: 0;
             padding: 0;
-            transition: background-color 0.3s ease, color 0.3s ease;
         }
-
-        /* Container principal */
         .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 20px auto;
+            width: 80%;
+            margin: auto;
             overflow: hidden;
             padding: 20px;
-            background-color: #ffffff;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
         }
-
-        /* Header */
         header {
-            background: #1e3a8a;
+            background: #00008b;
             color: #ffffff;
-            padding: 30px 0;
-            border-bottom: 5px solid #94a3b8;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #ffffff 3px solid;
         }
         header h1 {
             text-align: center;
-            font-size: 2.5rem;
-            font-weight: 700;
-            letter-spacing: 1px;
         }
-
-        /* Seção de resultados */
         .results-section {
-            background: #f9fafb;
-            padding: 30px;
+            background: #ffffff;
+            padding: 20px;
             margin-top: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
         }
-        .results-section h2 {
-            font-size: 1.8rem;
-            color: #1e3a8a;
-            margin-bottom: 20px;
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
         }
-
-        /* Estilo para cada candidato */
         .candidate {
             margin-bottom: 20px;
-            padding: 20px;
-            background-color: #e0f2fe;
-            border-radius: 8px;
-            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            padding: 10px;
+            background-color: #e6e6fa;
+            border-radius: 5px;
         }
-        .candidate:hover {
-            transform: translateY(-5px);
-        }
-        .candidate h3 {
-            font-size: 1.4rem;
-            color: #0f172a;
-        }
-        .candidate p {
-            font-size: 1rem;
-            color: #334155;
-        }
-
-        /* Estilo da barra de progresso */
         .progress-bar {
             width: 100%;
-            background-color: #cbd5e1;
-            border-radius: 8px;
-            overflow: hidden;
-            height: 30px;
-            margin-top: 10px;
+            background-color: #ddd;
+            border-radius: 5px;
         }
         .progress {
-            height: 100%;
-            background-color: #1e3a8a;
-            border-radius: 8px;
+            height: 20px;
+            background-color: #00008b;
+            border-radius: 5px;
             text-align: right;
-            color: #ffffff;
-            padding-right: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            line-height: 30px;
-            transition: width 0.5s ease;
-        }
-
-        /* Botões de turno */
-        .turnos {
-            margin-top: 30px;
-            text-align: center;
-        }
-        button {
-            background: #1e3a8a;
-            color: #ffffff;
-            border: none;
-            cursor: pointer;
-            padding: 12px 25px;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 8px;
-            margin-right: 15px;
-            transition: background 0.3s ease, transform 0.3s ease;
-        }
-        button:hover {
-            background: #2563eb;
-            transform: scale(1.05);
-        }
-
-        /* Progresso geral da votação */
-        .progresso-geral {
-            margin-top: 20px;
-            font-size: 1.1rem;
-            text-align: center;
-            color: #0f172a;
+            color: white;
+            padding-right: 5px;
         }
     </style>
 </head>
 <body>
     <header>
         <div class="container">
-            <h1>Resultados da Eleição</h1>
+            <h1>Resultados - Segundo Turno</h1>
         </div>
     </header>
 
     <div class="container">
-        <section class="results-section">
-            <h2>Resultados Atuais</h2>
-            <div id="results"></div>
-            <div class="turnos">
-                <button onclick="mostrarResultados('primeiro')">Resultados Primeiro Turno</button>
-                <button onclick="mostrarResultados('segundo')">Resultados Segundo Turno</button>
-            </div>
-            <p class="progresso-geral">Progresso da votação: <span id="progresso">0%</span></p>
-            <div class="progress-bar">
-                <div id="barra-progresso" class="progress"></div>
-            </div>
-        </section>
+        <div id="root"></div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-
+    <script type="text/babel">
+        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCF50W92_ZmSLGcDLlOr8r7QtF__JchP50",
             authDomain: "webuserdata.firebaseapp.com",
@@ -175,69 +91,102 @@
             measurementId: "G-VTDKLXL5TS"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
 
-        const votosRef = ref(database, 'votos');
-        const totalVotos = 9676; // Total de eleitores
+        function ResultsApp() {
+            const [results, setResults] = React.useState(null);
+            const [totalVotes, setTotalVotes] = React.useState(0);
+            const [electedCandidate, setElectedCandidate] = React.useState(null);
 
-        onValue(votosRef, (snapshot) => {
-            const votos = snapshot.val();
-            const resultados = contarVotos(votos);
-            exibirResultados(resultados);
-            atualizarProgresso(Object.values(votos).length);
-        });
+            React.useEffect(() => {
+                const votesRef = firebase.database().ref('votos-segundo-turno');
+                votesRef.on('value', (snapshot) => {
+                    const votes = snapshot.val();
+                    const voteCount = {};
+                    let total = 0;
 
-        function contarVotos(votos) {
-            const contagem = {};
-            for (let voto in votos) {
-                const candidato = votos[voto].candidato;
-                contagem[candidato] = (contagem[candidato] || 0) + 1;
-            }
-            return contagem;
-        }
+                    for (let key in votes) {
+                        const candidate = votes[key].candidato;
+                        voteCount[candidate] = (voteCount[candidate] || 0) + 1;
+                        total++;
+                    }
 
-        function exibirResultados(resultados) {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '';
+                    const sortedResults = Object.entries(voteCount).sort((a, b) => b[1] - a[1]);
+                    setResults(sortedResults);
+                    setTotalVotes(total);
 
-            // Transformar resultados em uma array de pares [candidato, votos]
-            const candidatosOrdenados = Object.entries(resultados).sort((a, b) => b[1] - a[1]);
+                    // Verificar se algum candidato atingiu mais de 50% dos votos
+                    const leadingCandidate = sortedResults[0];
+                    if (leadingCandidate && (leadingCandidate[1] / total) > 0.5) {
+                        setElectedCandidate(leadingCandidate[0]);
+                    } else {
+                        setElectedCandidate(null);
+                    }
+                });
+            }, []);
 
-            candidatosOrdenados.forEach((item, index) => {
-                const [candidato, votos] = item;
-                const porcentagem = (votos / totalVotos * 100).toFixed(2);
-                let status = `${index + 1}º Colocado`;
-
-                // Marcar o 1º e 2º colocado como "Segundo Turno" e os outros como "Não Eleito"
-                if (index === 0 || index === 1) {
-                    status = "Segundo Turno";
-                } else {
-                    status = "Não Eleito";
+            React.useEffect(() => {
+                if (results) {
+                    const ctx = document.getElementById('resultsChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: results.map(r => r[0]),
+                            datasets: [{
+                                label: 'Número de Votos',
+                                data: results.map(r => r[1]),
+                                backgroundColor: ['rgba(0, 0, 139, 0.6)', 'rgba(0, 0, 205, 0.6)'],
+                                borderColor: ['rgba(0, 0, 139, 1)', 'rgba(0, 0, 205, 1)'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
                 }
+            }, [results]);
 
-                resultsDiv.innerHTML += `
-                    <div class="candidate">
-                        <h3>${status}: ${candidato}</h3>
-                        <p>Votos: ${votos} (${porcentagem}%)</p>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: ${porcentagem}%">${porcentagem}%</div>
+            return (
+                <div className="results-section">
+                    <h2>Resultados Completos</h2>
+                    {electedCandidate && (
+                        <div className="elected">
+                            <h3>Candidato Eleito: {electedCandidate}</h3>
+                            <p>Parabéns ao novo presidente escolar!</p>
                         </div>
+                    )}
+                    <div className="chart-container">
+                        <canvas id="resultsChart"></canvas>
                     </div>
-                `;
-            });
+                    {results && results.map((result, index) => {
+                        const [candidate, votes] = result;
+                        const percentage = ((votes / totalVotes) * 100).toFixed(2);
+                        return (
+                            <div key={candidate} className="candidate">
+                                <h3>{index + 1}º Lugar: {candidate}</h3>
+                                <p>Votos: {votes} ({percentage}%)</p>
+                                <div className="progress-bar">
+                                    <div className="progress" style={{width: `${percentage}%`}}>
+                                        {percentage}%
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    
+                    })}
+                    <p>Total de votos: {totalVotes}</p>
+                </div>
+            );
         }
 
-        function atualizarProgresso(votosAtuais) {
-            const progresso = (votosAtuais / totalVotos * 100).toFixed(2);
-            document.getElementById('progresso').textContent = `${progresso}%`;
-            document.getElementById('barra-progresso').style.width = `${progresso}%`;
-        }
-
-        window.mostrarResultados = function(turno) {
-            alert(`Mostrando resultados do ${turno} turno`);
-            // Aqui você implementaria a lógica para mostrar os resultados do turno específico
-        }
+        ReactDOM.render(<ResultsApp />, document.getElementById('root'));
     </script>
 </body>
 </html>
