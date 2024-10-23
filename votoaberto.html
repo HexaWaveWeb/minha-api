@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta  name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voto Aberto</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            color: #00008b;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            padding: 20px;
+        }
+        header {
+            background: #00008b;
+            color: #ffffff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #ffffff 3px solid;
+        }
+        header h1 {
+            text-align: center;
+        }
+        .open-vote-section {
+            background: #ffffff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Voto Aberto</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="open-vote-section">
+            <h2>Resultados Detalhados</h2>
+            <div class="chart-container">
+                <canvas id="votosChart"></canvas>
+            </div>
+            <h3>Votos por Seção</h3>
+            <table id="votosPorSecao">
+                <tr>
+                    <th>Seção</th>
+                    <th>Quantidade de Votos</th>
+                </tr>
+            </table>
+            <p>Horário de Encerramento da Votação: <span id="horarioEncerramento"></span></p>
+        </section>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCF50W92_ZmSLGcDLlOr8r7QtF__JchP50",
+            authDomain: "webuserdata.firebaseapp.com",
+            databaseURL: "https://webuserdata-default-rtdb.firebaseio.com",
+            projectId: "webuserdata",
+            storageBucket: "webuserdata.appspot.com",
+            messagingSenderId: "996591404387",
+            appId: "1:996591404387:web:0d2f5d16b9494de4997f56",
+            measurementId: "G-VTDKLXL5TS"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        const votosRef = ref(database, 'votos');
+
+        onValue(votosRef, (snapshot) => {
+            const votos = snapshot.val();
+            if (votos) {
+                const resultados = contarVotos(votos);
+                criarGrafico(resultados);
+                exibirVotosPorSecao(votos);
+                definirHorarioEncerramento(votos);
+            }
+        });
+
+        function contarVotos(votos) {
+            const contagem = {};
+            for (let voto in votos) {
+                const candidato = votos[voto].candidato;
+                contagem[candidato] = (contagem[candidato] || 0) + 1;
+            }
+            return contagem;
+        }
+
+        function criarGrafico(resultados) {
+            const ctx = document.getElementById('votosChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(resultados),
+                    datasets: [{
+                        label: 'Número de Votos',
+                        data: Object.values(resultados),
+                        backgroundColor: 'rgba(0, 0, 139, 0.6)',
+                        borderColor: 'rgba(0, 0, 139, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function exibirVotosPorSecao(votos) {
+            const votosPorSecao = {};
+            for (let voto in votos) {
+                const secao = votos[voto].secao;
+                votosPorSecao[secao] = (votosPorSecao[secao] || 0) + 1;
+            }
+
+            const tabela = document.getElementById('votosPorSecao');
+            for (let secao in votosPorSecao) {
+                const row = tabela.insertRow(-1);
+                const cell1 = row.insertCell(0);
+                const cell2 = row.insertCell(1);
+                cell1.textContent = secao;
+                cell2.textContent = votosPorSecao[secao];
+            }
+        }
+
+        function definirHorarioEncerramento(votos) {
+            let ultimoVoto = 0;
+            for (let voto in votos) {
+                ultimoVoto = Math.max(ultimoVoto, votos[voto].timestamp);
+            }
+            const dataEncerramento = new Date(ultimoVoto);
+            document.getElementById('horarioEncerramento').textContent = dataEncerramento.toLocaleString();
+        }
+    </script>
+</body>
+</html>
