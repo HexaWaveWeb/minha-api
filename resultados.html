@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados da Eleição</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            color: #00008b;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            padding: 20px;
+        }
+        header {
+            background: #00008b;
+            color: #ffffff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #ffffff 3px solid;
+        }
+        header h1 {
+            text-align: center;
+        }
+        .results-section {
+            background: #ffffff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        .candidate {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #e6e6fa;
+            border-radius: 5px;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 5px;
+        }
+        .progress {
+            width: 0%;
+            height: 20px;
+            background-color: #00008b;
+            border-radius: 5px;
+            text-align: right;
+            color: white;
+            padding-right: 5px;
+        }
+        .turnos {
+            margin-top: 20px;
+        }
+        button {
+            background: #00008b;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0000cd;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Resultados da Eleição</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="results-section">
+            <h2>Resultados Atuais</h2>
+            <div id="results"></div>
+            <div class="turnos">
+                <button onclick="mostrarResultados('primeiro')">Resultados Primeiro Turno</button>
+                <button onclick="mostrarResultados('segundo')">Resultados Segundo Turno</button>
+            </div>
+            <p>Progresso da votação: <span id="progresso">0%</span></p>
+            <div class="progress-bar">
+                <div id="barra-progresso" class="progress"></div>
+            </div>
+        </section>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCF50W92_ZmSLGcDLlOr8r7QtF__JchP50",
+            authDomain: "webuserdata.firebaseapp.com",
+            databaseURL: "https://webuserdata-default-rtdb.firebaseio.com",
+            projectId: "webuserdata",
+            storageBucket: "webuserdata.appspot.com",
+            messagingSenderId: "996591404387",
+            appId: "1:996591404387:web:0d2f5d16b9494de4997f56",
+            measurementId: "G-VTDKLXL5TS"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        const votosRef = ref(database, 'votos');
+        const totalVotos = 9676; // Total de eleitores
+
+        onValue(votosRef, (snapshot) => {
+            const votos = snapshot.val();
+            const resultados = contarVotos(votos);
+            exibirResultados(resultados);
+            atualizarProgresso(Object.values(votos).length);
+        });
+
+        function contarVotos(votos) {
+            const contagem = {};
+            for (let voto in votos) {
+                const candidato = votos[voto].candidato;
+                contagem[candidato] = (contagem[candidato] || 0) + 1;
+            }
+            return contagem;
+        }
+
+        function exibirResultados(resultados) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            for (let candidato in resultados) {
+                const votos = resultados[candidato];
+                const porcentagem = (votos / totalVotos * 100).toFixed(2);
+                resultsDiv.innerHTML += `
+                    <div class="candidate">
+                        <h3>${candidato}</h3>
+                        <p>Votos: ${votos} (${porcentagem}%)</p>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: ${porcentagem}%">${porcentagem}%</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function atualizarProgresso(votosAtuais) {
+            const progresso = (votosAtuais / totalVotos * 100).toFixed(2);
+            document.getElementById('progresso').textContent = `${progresso}%`;
+            document.getElementById('barra-progresso').style.width = `${progresso}%`;
+        }
+
+        window.mostrarResultados = function(turno) {
+            alert(`Mostrando resultados do ${turno} turno`);
+            // Aqui você implementaria a lógica para mostrar os resultados do turno específico
+        }
+    </script>
+</body>
+</html>
