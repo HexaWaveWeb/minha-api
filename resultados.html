@@ -3,83 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultados - Segundo Turno</title>
-    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <title>Resultados da Votação - Segundo Turno</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f8ff;
             color: #00008b;
-            line-height: 1.6;
             margin: 0;
             padding: 0;
         }
         .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
         }
-        header {
-            background: #00008b;
-            color: #ffffff;
-            padding-top: 30px;
-            min-height: 70px;
-            border-bottom: #ffffff 3px solid;
-        }
-        header h1 {
+        h1, h2 {
             text-align: center;
+            color: #0000cd;
         }
-        .results-section {
-            background: #ffffff;
+        .resultado {
+            background-color: #ffffff;
+            border: 2px solid #0000cd;
+            border-radius: 10px;
             padding: 20px;
             margin-top: 20px;
-            border-radius: 5px;
         }
-        .chart-container {
-            position: relative;
-            height: 400px;
-            width: 100%;
+        #graficoResultado {
+            max-width: 600px;
+            margin: 0 auto;
         }
-        .candidate {
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #e6e6fa;
-            border-radius: 5px;
+        .candidato {
+            margin-bottom: 10px;
+            font-size: 18px;
         }
-        .progress-bar {
-            width: 100%;
-            background-color: #ddd;
-            border-radius: 5px;
-        }
-        .progress {
-            height: 20px;
-            background-color: #00008b;
-            border-radius: 5px;
-            text-align: right;
-            color: white;
-            padding-right: 5px;
+        .eleito {
+            color: #008000;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>Resultados - Segundo Turno</h1>
-        </div>
-    </header>
-
     <div class="container">
-        <div id="root"></div>
+        <h1>Resultados da Votação - Segundo Turno</h1>
+        
+        <div class="resultado">
+            <h2>Apuração dos Votos</h2>
+            <div id="resultadoVotacao"></div>
+            <canvas id="graficoResultado"></canvas>
+        </div>
     </div>
 
-    <script type="text/babel">
-        // Configuração do Firebase
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyCF50W92_ZmSLGcDLlOr8r7QtF__JchP50",
             authDomain: "webuserdata.firebaseapp.com",
@@ -91,102 +69,70 @@
             measurementId: "G-VTDKLXL5TS"
         };
 
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
-        function ResultsApp() {
-            const [results, setResults] = React.useState(null);
-            const [totalVotes, setTotalVotes] = React.useState(0);
-            const [electedCandidate, setElectedCandidate] = React.useState(null);
+        const votosRef = ref(database, 'votos');
+        onValue(votosRef, (snapshot) => {
+            const votos = snapshot.val();
+            const resultado = contarVotos(votos);
+            exibirResultado(resultado);
+            criarGrafico(resultado);
+        });
 
-            React.useEffect(() => {
-                const votesRef = firebase.database().ref('votos-segundo-turno');
-                votesRef.on('value', (snapshot) => {
-                    const votes = snapshot.val();
-                    const voteCount = {};
-                    let total = 0;
-
-                    for (let key in votes) {
-                        const candidate = votes[key].candidato;
-                        voteCount[candidate] = (voteCount[candidate] || 0) + 1;
-                        total++;
-                    }
-
-                    const sortedResults = Object.entries(voteCount).sort((a, b) => b[1] - a[1]);
-                    setResults(sortedResults);
-                    setTotalVotes(total);
-
-                    // Verificar se algum candidato atingiu mais de 50% dos votos
-                    const leadingCandidate = sortedResults[0];
-                    if (leadingCandidate && (leadingCandidate[1] / total) > 0.5) {
-                        setElectedCandidate(leadingCandidate[0]);
-                    } else {
-                        setElectedCandidate(null);
-                    }
-                });
-            }, []);
-
-            React.useEffect(() => {
-                if (results) {
-                    const ctx = document.getElementById('resultsChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: results.map(r => r[0]),
-                            datasets: [{
-                                label: 'Número de Votos',
-                                data: results.map(r => r[1]),
-                                backgroundColor: ['rgba(0, 0, 139, 0.6)', 'rgba(0, 0, 205, 0.6)'],
-                                borderColor: ['rgba(0, 0, 139, 1)', 'rgba(0, 0, 205, 1)'],
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: {
-                                y: {
-                                    beginAtZero: true
-                                }
-                            }
-                        }
-                    });
-                }
-            }, [results]);
-
-            return (
-                <div className="results-section">
-                    <h2>Resultados Completos</h2>
-                    {electedCandidate && (
-                        <div className="elected">
-                            <h3>Candidato Eleito: {electedCandidate}</h3>
-                            <p>Parabéns ao novo presidente escolar!</p>
-                        </div>
-                    )}
-                    <div className="chart-container">
-                        <canvas id="resultsChart"></canvas>
-                    </div>
-                    {results && results.map((result, index) => {
-                        const [candidate, votes] = result;
-                        const percentage = ((votes / totalVotes) * 100).toFixed(2);
-                        return (
-                            <div key={candidate} className="candidate">
-                                <h3>{index + 1}º Lugar: {candidate}</h3>
-                                <p>Votos: {votes} ({percentage}%)</p>
-                                <div className="progress-bar">
-                                    <div className="progress" style={{width: `${percentage}%`}}>
-                                        {percentage}%
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    
-                    })}
-                    <p>Total de votos: {totalVotes}</p>
-                </div>
-            );
+        function contarVotos(votos) {
+            const contagem = {
+                "Francisco Luciano": 0,
+                "Miguel": 0
+            };
+            
+            for (const key in votos) {
+                const voto = votos[key];
+                contagem[voto.candidato]++;
+            }
+            
+            return contagem;
         }
 
-        ReactDOM.render(<ResultsApp />, document.getElementById('root'));
+        function exibirResultado(resultado) {
+            const total = resultado["Francisco Luciano"] + resultado["Miguel"];
+            const resultadoElement = document.getElementById('resultadoVotacao');
+            resultadoElement.innerHTML = '';
+
+            const candidatos = Object.keys(resultado).sort((a, b) => resultado[b] - resultado[a]);
+
+            candidatos.forEach((candidato, index) => {
+                const votos = resultado[candidato];
+                const porcentagem = ((votos / total) * 100).toFixed(2);
+                const eleito = index === 0 && porcentagem > 50 ? ' <span class="eleito">ELEITO PELO POVO</span>' : '';
+                
+                const candidatoElement = document.createElement('div');
+                candidatoElement.className = 'candidato';
+                candidatoElement.innerHTML = `${candidato}: ${votos} votos (${porcentagem}%)${eleito}`;
+                resultadoElement.appendChild(candidatoElement);
+            });
+        }
+
+        function criarGrafico(resultado) {
+            const ctx = document.getElementById('graficoResultado').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(resultado),
+                    datasets: [{
+                        data: Object.values(resultado),
+                        backgroundColor: ['#0000cd', '#00008b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Distribuição dos Votos'
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>
