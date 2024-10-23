@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Urna Digital</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            color: #00008b;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            padding: 20px;
+        }
+        header {
+            background: #00008b;
+            color: #ffffff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #ffffff 3px solid;
+        }
+        header h1 {
+            text-align: center;
+        }
+        .info-section {
+            background: #ffffff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        .urna {
+            background: #ffffff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        select, button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+        }
+        button {
+            background: #00008b;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0000cd;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Minha Urna Digital</h1>
+          <nav>
+            <ul>
+              <li><a href="resultados.html">Resultados</a></li>
+              <li><a href="votoaberto.html">Voto Aberto</a></li>
+              <li><a href="votoregistrado.html">Voto Registrado</a></li>
+              <li><a href="votofamilia.html">Voto Familia</a></li> 
+            </ul>
+          </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="info-section">
+            <h2>Informações sobre a Eleição</h2>
+            <p>O presidente Escolar ficará eleito durante 2 anos. Ele terá como sede a instituição Pratonato, localizada em Cascavel CE, e comandará as escolas Vicentinas por todo o mundo.</p>
+            <p>Como o presidente é jovem, podendo ter apenas de 12 a 17 anos, se ocorrer de um candidato não atingir 51% dos votos dos eleitores, haverá segundo turno com os dois candidatos mais votados. Se no segundo turno nenhum candidato atingir 51%, haverá a possibilidade de um terceiro turno.</p>
+            <p>A votação inicia às 17:10, mas o usuário já pode votar antes desse horário.</p>
+            <p>O limite de eleitores é de 9676 alunos, sem contar com alunos do 1º ao 4º ano.</p>
+        </section>
+
+        <section class="urna">
+            <h2>Urna de Votação</h2>
+            <select id="candidato">
+                <option value="">Selecione o Candidato</option>
+                <option value="karen">Karen De Lima</option>
+                <option value="harrison">Harrison Xavier</option>
+                <option value="joao">João Lucas</option>
+                <option value="francisco">Francisco Luciano</option>
+                <option value="carlos">Carlos Eduardo</option>
+                <option value="miguel">Miguel Soares De Nóbrega</option>
+            </select>
+            <select id="secao">
+                <option value="">Selecione a Seção</option>
+                <option value="10">Seção 10</option>
+                <option value="20">Seção 20</option>
+                <option value="30">Seção 30</option>
+                <option value="40">Seção 40</option>
+                <option value="50">Seção 50</option>
+                <option value="60">Seção 60</option>
+                <option value="70">Seção 70</option>
+                <option value="80">Seção 80</option>
+                <option value="90">Seção 90</option>
+                <option value="100">Seção 100</option>
+                <option value="pratonato">Seção Principal Do Pratonato</option>
+            </select>
+            <button id="votar">Votar</button>
+        </section>
+    </div>
+
+    <script type="module">
+        // Importando os módulos do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCF50W92_ZmSLGcDLlOr8r7QtF__JchP50",
+            authDomain: "webuserdata.firebaseapp.com",
+            databaseURL: "https://webuserdata-default-rtdb.firebaseio.com",
+            projectId: "webuserdata",
+            storageBucket: "webuserdata.appspot.com",
+            messagingSenderId: "996591404387",
+            appId: "1:996591404387:web:0d2f5d16b9494de4997f56",
+            measurementId: "G-VTDKLXL5TS"
+        };
+
+        // Inicializando o Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Função para registrar o voto
+        function registrarVoto(candidato, secao) {
+            const votoRef = ref(database, 'votos');
+            push(votoRef, {
+                candidato: candidato,
+                secao: secao,
+                timestamp: Date.now()
+            });
+        }
+
+        // Evento de clique no botão de votar
+        document.getElementById('votar').addEventListener('click', function() {
+            const candidato = document.getElementById('candidato').value;
+            const secao = document.getElementById('secao').value;
+
+            if (candidato && secao) {
+                registrarVoto(candidato, secao);
+                alert('Voto registrado com sucesso!');
+            } else {
+                alert('Por favor, selecione um candidato e uma seção.');
+            }
+        });
+    </script>
+</body>
+  </html>
