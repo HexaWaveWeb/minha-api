@@ -1,16 +1,15 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Análise de Votos - Segundo Turno</title>
-    <script type="module" src="https://unpkg.com/react@17/umd/react.development.js"></script>
-    <script type="module" src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -42,23 +41,21 @@
             margin-top: 20px;
             border-radius: 5px;
         }
-        .chart-container {
-            position: relative;
-            height: 400px;
-            width: 100%;
-            margin-bottom: 20px;
-        }
         table {
             width: 100%;
+            margin-top: 20px;
             border-collapse: collapse;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+        table, th, td {
+            border: 1px solid #00008b;
         }
-        th {
-            background-color: #f2f2f2;
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
         }
     </style>
 </head>
@@ -74,12 +71,12 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
-        import { Chart } from 'https://cdn.jsdelivr.net/npm/chart.js';
-        import moment from 'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js';
+        
+     // Configuração do Firebase
+ // Configuração do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js";
 
-        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCF50W92_ZmSLGcDLlOr8r7QtF__JchP50",
             authDomain: "webuserdata.firebaseapp.com",
@@ -91,135 +88,128 @@
             measurementId: "G-VTDKLXL5TS"
         };
 
-        // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        firebase.initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
         function AnalysisApp() {
-            const [votesBySection, setVotesBySection] = React.useState({});
-            const [voteTimeline, setVoteTimeline] = React.useState([]);
-            const [leadChanges, setLeadChanges] = React.useState([]);
+            const [votesData, setVotesData] = React.useState({});
+            const [sectionData, setSectionData] = React.useState({});
+            const [candidateStats, setCandidateStats] = React.useState({
+                Francisco: { total: 0, sections: {} },
+                Miguel: { total: 0, sections: {} }
+            });
 
             React.useEffect(() => {
-                const votesRef = ref(db, 'votos-segundo-turno');
-                onValue(votesRef, (snapshot) => {
+                const voteRef = firebase.database().ref('votos-segundo-turno');
+                
+                voteRef.on('value', snapshot => {
                     const votes = snapshot.val();
-                    analyzeVotes(votes);
+                    const tempStats = { Francisco: { total: 0, sections: {} }, Miguel: { total: 0, sections: {} } };
+                    const sectionTotals = {};
+
+                    for (let key in votes) {
+                        const vote = votes[key];
+                        const { candidato, secao, timestamp } = vote;
+                        
+                        // Total de votos por candidato
+                        if (tempStats[candidato]) {
+                            tempStats[candidato].total += 1;
+
+                            // Votos por seção
+                            if (!tempStats[candidato].sections[secao]) {
+                                tempStats[candidato].sections[secao] = 0;
+                            }
+                            tempStats[candidato].sections[secao] += 1;
+                        }
+
+                        // Total de votos por seção geral
+                        if (!sectionTotals[secao]) {
+                            sectionTotals[secao] = 0;
+                        }
+                        sectionTotals[secao] += 1;
+                    }
+
+                    setVotesData(votes);
+                    setCandidateStats(tempStats);
+                    setSectionData(sectionTotals);
+                    renderCharts(tempStats, sectionTotals);
                 });
             }, []);
 
-            const analyzeVotes = (votes) => {
-                const sectionVotes = {};
-                const timeline = [];
-                const changes = [];
-                let currentLead = null;
-                let luciano = 0;
-                let miguel = 0;
-
-                Object.entries(votes).forEach(([key, vote]) => {
-                    // Análise por seção
-                    if (!sectionVotes[vote.secao]) {
-                        sectionVotes[vote.secao] = { 'Francisco Luciano': 0, 'Miguel Soares De Nóbrega': 0 };
-                    }
-                    sectionVotes[vote.secao][vote.candidato]++;
-
-                    // Timeline de votos
-                    if (vote.candidato === 'Francisco Luciano') luciano++;
-                    else miguel++;
-                    timeline.push({ time: new Date(vote.timestamp), luciano, miguel });
-
-                    // Mudanças de liderança
-                    const newLead = luciano > miguel ? 'Francisco Luciano' : 'Miguel Soares De Nóbrega';
-                    if (newLead !== currentLead) {
-                        changes.push({ time: new Date(vote.timestamp), newLead });
-                        currentLead = newLead;
+            const renderCharts = (candidateStats, sectionData) => {
+                // Gráfico de barras com a quantidade de votos por seção
+                const ctx1 = document.getElementById('sectionChart').getContext('2d');
+                new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(sectionData),
+                        datasets: [
+                            {
+                                label: 'Total de Votos por Seção',
+                                data: Object.values(sectionData),
+                                backgroundColor: 'rgba(0, 0, 139, 0.7)'
+                            }
+                        ]
                     }
                 });
 
-                setVotesBySection(sectionVotes);
-                setVoteTimeline(timeline);
-                setLeadChanges(changes);
+                // Gráfico de linhas com a quantidade de votos por candidato
+                const ctx2 = document.getElementById('candidateChart').getContext('2d');
+                new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        labels: Object.keys(sectionData),
+                        datasets: [
+                            {
+                                label: 'Francisco Luciano',
+                                data: Object.keys(sectionData).map(secao => candidateStats.Francisco.sections[secao] || 0),
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                fill: false
+                            },
+                            {
+                                label: 'Miguel Soares De Nóbrega',
+                                data: Object.keys(sectionData).map(secao => candidateStats.Miguel.sections[secao] || 0),
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                fill: false
+                            }
+                        ]
+                    }
+                });
             };
 
-            React.useEffect(() => {
-                if (voteTimeline.length > 0) {
-                    const ctx = document.getElementById('timelineChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: voteTimeline.map(v => moment(v.time).format('HH:mm:ss')),
-                            datasets: [
-                                {
-                                    label: 'Francisco Luciano',
-                                    data: voteTimeline.map(v => v.luciano),
-                                    borderColor: 'rgba(0, 0, 139, 1)',
-                                    fill: false
-                                },
-                                {
-                                    label: 'Miguel Soares De Nóbrega',
-                                    data: voteTimeline.map(v => v.miguel),
-                                    borderColor: 'rgba(0, 0, 205, 1)',
-                                    fill: false
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: {
-                                x: {
-                                    type: 'time',
-                                    time: {
-                                        unit: 'hour'
-                                    }
-                                },
-                                y: {
-                                    beginAtZero: true
-                                }
-                            }
-                        }
-                    });
-                }
-            }, [voteTimeline]);
-
             return (
-                <div className="analysis-section">
-                    <h2>Análise Detalhada dos Votos</h2>
-                    
-                    <h3>Timeline de Votos</h3>
-                    <div className="chart-container">
-                        <canvas id="timelineChart"></canvas>
-                    </div>
+                <div>
+                    <section className="analysis-section">
+                        <h2>Quantidade de Votos por Seção</h2>
+                        <div className="chart-container">
+                            <canvas id="sectionChart"></canvas>
+                        </div>
 
-                    <h3>Votos por Seção</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Seção</th>
-                                <th>Francisco Luciano</th>
-                                <th>Miguel Soares De Nóbrega</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Object.entries(votesBySection).map(([section, votes]) => (
-                                <tr key={section}>
-                                    <td>{section}</td>
-                                    <td>{votes['Francisco Luciano']}</td>
-                                    <td>{votes['Miguel Soares De Nóbrega']}</td>
-                                    <td>{votes['Francisco Luciano'] + votes['Miguel Soares De Nóbrega']}</td>
+                        <h2>Quantidade de Votos por Candidato</h2>
+                        <div className="chart-container">
+                            <canvas id="candidateChart"></canvas>
+                        </div>
+
+                        <h2>Tabela de Votos por Candidato e Seção</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Seção</th>
+                                    <th>Francisco Luciano</th>
+                                    <th>Miguel Soares De Nóbrega</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-
-                    <h3>Mudanças de Liderança</h3>
-                    <ul>
-                        {leadChanges.map((change, index) => (
-                            <li key={index}>
-                                {moment(change.time).format('LLL')}: {change.newLead} assumiu a liderança
-                            </li>
-                        ))}
-                    </ul>
+                            </thead>
+                            <tbody>
+                                {Object.keys(sectionData).map(secao => (
+                                    <tr key={secao}>
+                                        <td>{secao}</td>
+                                        <td>{candidateStats.Francisco.sections[secao] || 0}</td>
+                                        <td>{candidateStats.Miguel.sections[secao] || 0}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </section>
                 </div>
             );
         }
