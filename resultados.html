@@ -207,11 +207,18 @@
             candidatosOrdenados.forEach((item, index) => {
                 const [candidato, votos] = item;
                 const porcentagem = (votos / totalVotos * 100).toFixed(2);
-                const colocacao = `${index + 1}º Colocado`;
+                let status = `${index + 1}º Colocado`;
+
+                // Marcar o 1º e 2º colocado como "Segundo Turno" e os outros como "Não Eleito"
+                if (index === 0 || index === 1) {
+                    status = "Segundo Turno";
+                } else {
+                    status = "Não Eleito";
+                }
 
                 resultsDiv.innerHTML += `
                     <div class="candidate">
-                        <h3>${colocacao}: ${candidato}</h3>
+                        <h3>${status}: ${candidato}</h3>
                         <p>Votos: ${votos} (${porcentagem}%)</p>
                         <div class="progress-bar">
                             <div class="progress" style="width: ${porcentagem}%">${porcentagem}%</div>
