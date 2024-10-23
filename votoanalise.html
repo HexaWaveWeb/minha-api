@@ -1,16 +1,16 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Análise de Votos - Segundo Turno</title>
-    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script type="module" src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script type="module" src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -73,7 +73,12 @@
         <div id="root"></div>
     </div>
 
-    <script type="text/babel">
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+        import { Chart } from 'https://cdn.jsdelivr.net/npm/chart.js';
+        import moment from 'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js';
+
         // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCF50W92_ZmSLGcDLlOr8r7QtF__JchP50",
@@ -87,7 +92,8 @@
         };
 
         // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
         function AnalysisApp() {
             const [votesBySection, setVotesBySection] = React.useState({});
@@ -95,8 +101,8 @@
             const [leadChanges, setLeadChanges] = React.useState([]);
 
             React.useEffect(() => {
-                const votesRef = firebase.database().ref('votos-segundo-turno');
-                votesRef.on('value', (snapshot) => {
+                const votesRef = ref(db, 'votos-segundo-turno');
+                onValue(votesRef, (snapshot) => {
                     const votes = snapshot.val();
                     analyzeVotes(votes);
                 });
@@ -141,7 +147,7 @@
                     new Chart(ctx, {
                         type: 'line',
                         data: {
-                            labels: voteTimeline.map(v => v.time.toLocaleTimeString()),
+                            labels: voteTimeline.map(v => moment(v.time).format('HH:mm:ss')),
                             datasets: [
                                 {
                                     label: 'Francisco Luciano',
@@ -210,7 +216,7 @@
                     <ul>
                         {leadChanges.map((change, index) => (
                             <li key={index}>
-                                {change.time.toLocaleString()}: {change.newLead} assumiu a liderança
+                                {moment(change.time).format('LLL')}: {change.newLead} assumiu a liderança
                             </li>
                         ))}
                     </ul>
