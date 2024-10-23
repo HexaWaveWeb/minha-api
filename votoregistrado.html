@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Votos Registrados</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            color: #00008b;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            padding: 20px;
+        }
+        header {
+            background: #00008b;
+            color: #ffffff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #ffffff 3px solid;
+        }
+        header h1 {
+            text-align: center;
+        }
+        .votes-section {
+            background: #ffffff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Votos Registrados</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="votes-section">
+            <h2>Total de Votos Registrados</h2>
+            <p>Votos Oficiais: <span id="votos-oficiais">0</span></p>
+            <p>Votos Família: <span id="votos-familia">0</span></p>
+        </section>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCF50W92_ZmSLGcDLlOr8r7QtF__JchP50",
+            authDomain: "webuserdata.firebaseapp.com",
+            databaseURL: "https://webuserdata-default-rtdb.firebaseio.com",
+            projectId: "webuserdata",
+            storageBucket: "webuserdata.appspot.com",
+            messagingSenderId: "996591404387",
+            appId: "1:996591404387:web:0d2f5d16b9494de4997f56",
+            measurementId: "G-VTDKLXL5TS"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        const votosOficiaisRef = ref(database, 'votos');
+        const votosFamiliaRef = ref(database, 'votos-familia');
+
+        onValue(votosOficiaisRef, (snapshot) => {
+            const votos = snapshot.val();
+            document.getElementById('votos-oficiais').textContent = Object.keys(votos || {}).length;
+        });
+
+        onValue(votosFamiliaRef, (snapshot) => {
+            const votos = snapshot.val();
+            document.getElementById('votos-familia').textContent = Object.keys(votos || {}).length;
+        });
+    </script>
+</body>
+</html>
