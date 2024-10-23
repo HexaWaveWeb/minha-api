@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Votos - Segundo Turno</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            color: #00008b;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            padding: 20px;
+        }
+        header {
+            background: #00008b;
+            color: #ffffff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #ffffff 3px solid;
+        }
+        header h1 {
+            text-align: center;
+        }
+        .analysis-section {
+            background: #ffffff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Análise de Votos - Segundo Turno</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="root"></div>
+    </div>
+
+    <script type="text/babel">
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCF50W92_ZmSLGcDLlOr8r7QtF__JchP50",
+            authDomain: "webuserdata.firebaseapp.com",
+            databaseURL: "https://webuserdata-default-rtdb.firebaseio.com",
+            projectId: "webuserdata",
+            storageBucket: "webuserdata.appspot.com",
+            messagingSenderId: "996591404387",
+            appId: "1:996591404387:web:0d2f5d16b9494de4997f56",
+            measurementId: "G-VTDKLXL5TS"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        function AnalysisApp() {
+            const [votesBySection, setVotesBySection] = React.useState({});
+            const [voteTimeline, setVoteTimeline] = React.useState([]);
+            const [leadChanges, setLeadChanges] = React.useState([]);
+
+            React.useEffect(() => {
+                const votesRef = firebase.database().ref('votos-segundo-turno');
+                votesRef.on('value', (snapshot) => {
+                    const votes = snapshot.val();
+                    analyzeVotes(votes);
+                });
+            }, []);
+
+            const analyzeVotes = (votes) => {
+                const sectionVotes = {};
+                const timeline = [];
+                const changes = [];
+                let currentLead = null;
+                let luciano = 0;
+                let miguel = 0;
+
+                Object.entries(votes).forEach(([key, vote]) => {
+                    // Análise por seção
+                    if (!sectionVotes[vote.secao]) {
+                        sectionVotes[vote.secao] = { 'Francisco Luciano': 0, 'Miguel Soares De Nóbrega': 0 };
+                    }
+                    sectionVotes[vote.secao][vote.candidato]++;
+
+                    // Timeline de votos
+                    if (vote.candidato === 'Francisco Luciano') luciano++;
+                    else miguel++;
+                    timeline.push({ time: new Date(vote.timestamp), luciano, miguel });
+
+                    // Mudanças de liderança
+                    const newLead = luciano > miguel ? 'Francisco Luciano' : 'Miguel Soares De Nóbrega';
+                    if (newLead !== currentLead) {
+                        changes.push({ time: new Date(vote.timestamp), newLead });
+                        currentLead = newLead;
+                    }
+                });
+
+                setVotesBySection(sectionVotes);
+                setVoteTimeline(timeline);
+                setLeadChanges(changes);
+            };
+
+            React.useEffect(() => {
+                if (voteTimeline.length > 0) {
+                    const ctx = document.getElementById('timelineChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: voteTimeline.map(v => v.time.toLocaleTimeString()),
+                            datasets: [
+                                {
+                                    label: 'Francisco Luciano',
+                                    data: voteTimeline.map(v => v.luciano),
+                                    borderColor: 'rgba(0, 0, 139, 1)',
+                                    fill: false
+                                },
+                                {
+                                    label: 'Miguel Soares De Nóbrega',
+                                    data: voteTimeline.map(v => v.miguel),
+                                    borderColor: 'rgba(0, 0, 205, 1)',
+                                    fill: false
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                x: {
+                                    type: 'time',
+                                    time: {
+                                        unit: 'hour'
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                }
+            }, [voteTimeline]);
+
+            return (
+                <div className="analysis-section">
+                    <h2>Análise Detalhada dos Votos</h2>
+                    
+                    <h3>Timeline de Votos</h3>
+                    <div className="chart-container">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+
+                    <h3>Votos por Seção</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Seção</th>
+                                <th>Francisco Luciano</th>
+                                <th>Miguel Soares De Nóbrega</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Object.entries(votesBySection).map(([section, votes]) => (
+                                <tr key={section}>
+                                    <td>{section}</td>
+                                    <td>{votes['Francisco Luciano']}</td>
+                                    <td>{votes['Miguel Soares De Nóbrega']}</td>
+                                    <td>{votes['Francisco Luciano'] + votes['Miguel Soares De Nóbrega']}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    <h3>Mudanças de Liderança</h3>
+                    <ul>
+                        {leadChanges.map((change, index) => (
+                            <li key={index}>
+                                {change.time.toLocaleString()}: {change.newLead} assumiu a liderança
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<AnalysisApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
