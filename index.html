@@ -3,76 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Votar - Segundo Turno</title>
-    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <title>Minha Urna Digital - Segundo Turno</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f8ff;
             color: #00008b;
-            line-height: 1.6;
             margin: 0;
             padding: 0;
         }
         .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
         }
-        header {
-            background: #00008b;
-            color: #ffffff;
-            padding-top: 30px;
-            min-height: 70px;
-            border-bottom: #ffffff 3px solid;
-        }
-        header h1 {
+        h1 {
             text-align: center;
+            color: #0000cd;
         }
-        .info-section, .voting-section {
-            background: #ffffff;
+        .urna {
+            background-color: #ffffff;
+            border: 2px solid #0000cd;
+            border-radius: 10px;
             padding: 20px;
             margin-top: 20px;
-            border-radius: 5px;
         }
-        button {
-            background: #00008b;
-            color: #ffffff;
-            border: none;
-            cursor: pointer;
-            padding: 10px 20px;
-            margin: 10px 0;
+        .candidato {
+            margin-bottom: 10px;
         }
-        button:hover {
-            background: #0000cd;
+        .secao {
+            margin-top: 20px;
+        }
+        select, button {
+            margin-top: 10px;
         }
         .links {
             margin-top: 20px;
+            text-align: center;
         }
         .links a {
-            color: #00008b;
-            margin-right: 15px;
+            margin: 0 10px;
+            color: #0000cd;
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>Votação - Segundo Turno</h1>
-        </div>
-    </header>
-
     <div class="container">
-        <div id="root"></div>
+        <h1>Minha Urna Digital - Segundo Turno</h1>
+        
+        <div class="urna">
+            <h2>Vote no seu candidato:</h2>
+            <div class="candidato">
+                <input type="radio" id="francisco" name="candidato" value="Francisco Luciano">
+                <label for="francisco">Francisco Luciano</label>
+            </div>
+            <div class="candidato">
+                <input type="radio" id="miguel" name="candidato" value="Miguel">
+                <label for="miguel">Miguel</label>
+            </div>
+            
+            <div class="secao">
+                <label for="secao">Escolha sua seção:</label>
+                <select id="secao">
+                    <option value="10">Seção 10</option>
+                    <option value="20">Seção 20</option>
+                    <option value="30">Seção 30</option>
+                    <option value="40">Seção 40</option>
+                    <option value="50">Seção 50</option>
+                    <option value="60">Seção 60</option>
+                    <option value="70">Seção 70</option>
+                    <option value="80">Seção 80</option>
+                    <option value="90">Seção 90</option>
+                    <option value="100">Seção 100</option>
+                    <option value="principal">Seção Principal Do Pratonato</option>
+                </select>
+            </div>
+            
+            <button onclick="votar()">Confirmar Voto</button>
+        </div>
+        
+        <div class="links">
+            <a href="resultados.html">Ver Resultados</a>
+            <a href="analise.html">Análise Detalhada</a>
+        </div>
     </div>
 
-    <script type="text/babel">
-        // Configuração do Firebase
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCF50W92_ZmSLGcDLlOr8r7QtF__JchP50",
             authDomain: "webuserdata.firebaseapp.com",
@@ -84,88 +106,23 @@
             measurementId: "G-VTDKLXL5TS"
         };
 
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
-        function VotingApp() {
-            const [selectedCandidate, setSelectedCandidate] = React.useState('');
-            const [selectedSection, setSelectedSection] = React.useState('');
-            const [message, setMessage] = React.useState('');
+        window.votar = function() {
+            const candidato = document.querySelector('input[name="candidato"]:checked').value;
+            const secao = document.getElementById('secao').value;
 
-            const handleVote = () => {
-                if (!selectedCandidate || !selectedSection) {
-                    setMessage('Por favor, selecione um candidato e uma seção.');
-                    return;
-                }
+            const votoRef = ref(database, 'votos');
+            push(votoRef, {
+                candidato: candidato,
+                secao: secao,
+                timestamp: Date.now()
+            });
 
-                const voteRef = firebase.database().ref('votos-segundo-turno');
-                voteRef.push({
-                    candidato: selectedCandidate,
-                    secao: selectedSection,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                }).then(() => {
-                    setMessage('Voto registrado com sucesso!');
-                    setSelectedCandidate('');
-                    setSelectedSection('');
-                }).catch((error) => {
-                    setMessage('Erro ao registrar o voto. Por favor, tente novamente.');
-                    console.error('Erro:', error);
-                });
-            };
-
-            return (
-                <div>
-                    <section className="info-section">
-                        <h2>Informações sobre a Votação</h2>
-                        <p>Bem-vindo ao segundo turno da eleição para presidente escolar. Nesta fase, os candidatos Francisco Luciano e Miguel Soares De Nóbrega estão disputando a vitória.</p>
-                        <p>O presidente eleito ficará no cargo por 2 anos, comandando as escolas Vicentinas por todo o mundo a partir da sede no Pratonato, em Cascavel CE.</p>
-                        <p>Lembre-se: seu voto é importante para definir o futuro da nossa instituição!</p>
-                    </section>
-
-                    <section className="voting-section">
-                        <h2>Vote Aqui</h2>
-                        <div>
-                            <label>
-                                Selecione o Candidato:
-                                <select value={selectedCandidate} onChange={(e) => setSelectedCandidate(e.target.value)}>
-                                    <option value="">Escolha um candidato</option>
-                                    <option value="Francisco Luciano">Francisco Luciano</option>
-                                    <option value="Miguel Soares De Nóbrega">Miguel Soares De Nóbrega</option>
-                                </select>
-                            </label>
-                        </div>
-                        <div>
-                            <label>
-                                Selecione a Seção:
-                                <select value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
-                                    <option value="">Escolha uma seção</option>
-                                    <option value="10">Seção 10</option>
-                                    <option value="20">Seção 20</option>
-                                    <option value="30">Seção 30</option>
-                                    <option value="40">Seção 40</option>
-                                    <option value="50">Seção 50</option>
-                                    <option value="60">Seção 60</option>
-                                    <option value="70">Seção 70</option>
-                                    <option value="80">Seção 80</option>
-                                    <option value="90">Seção 90</option>
-                                    <option value="100">Seção 100</option>
-                                    <option value="pratonato">Seção Principal Do Pratonato</option>
-                                </select>
-                            </label>
-                        </div>
-                        <button onClick={handleVote}>Votar</button>
-                        {message && <p>{message}</p>}
-                    </section>
-
-                    <div className="links">
-                        <a href="resultados.html">Ver Resultados</a>
-                        <a href="votoanalise.html">Análise de Votos</a>
-                    </div>
-                </div>
-            );
+            alert('Voto registrado com sucesso!');
         }
-
-        ReactDOM.render(<VotingApp />, document.getElementById('root'));
     </script>
 </body>
 </html>
