@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise - Eleição Presidente Escolar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            color: #00008b;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            padding: 20px;
+        }
+        header {
+            background: #00008b;
+            color: #ffffff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #ffffff 3px solid;
+        }
+        header h1 {
+            text-align: center;
+        }
+        nav {
+            background: #4169e1;
+            color: #ffffff;
+            padding: 10px 0;
+        }
+        nav ul {
+            padding: 0;
+            list-style: none;
+        }
+        nav li {
+            display: inline;
+            margin-right: 20px;
+        }
+        nav a {
+            color: #ffffff;
+            
+            text-decoration: none;
+            font-size: 18px;
+        }
+        .analise {
+            background: #ffffff;
+            border: 1px solid #00008b;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #00008b;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4169e1;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Análise da Eleição</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="index.html">Início</a></li>
+            <li><a href="resultados.html">Resultados</a></li>
+            <li><a href="#analise">Análise</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <section id="analise" class="analise">
+            <h2>Análise Detalhada</h2>
+            <div id="total-votos"></div>
+            <div id="desempenho-horario"></div>
+            <div id="ultrapassagens"></div>
+            <div id="status-eleicao"></div>
+            <h3>Votos por Seção</h3>
+            <table id="votos-secao">
+                <thead>
+                    <tr>
+                        <th>Seção</th>
+                        <th>Francisco Luciano</th>
+                        <th>Miguel Soares De Nóbrega</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyARCZXNgStaYptTeFavV8EshQouNAMjNGU",
+            authDomain: "lifeword-233dd.firebaseapp.com",
+            databaseURL: "https://lifeword-233dd-default-rtdb.firebaseio.com",
+            projectId: "lifeword-233dd",
+            storageBucket: "lifeword-233dd.appspot.com",
+            messagingSenderId: "323873998933",
+            appId: "1:323873998933:web:75a30b109e175a3d46acdc",
+            measurementId: "G-P86GS65BEB"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        const votosRef = ref(database, 'votos');
+
+        function atualizarAnalise(snapshot) {
+            const votos = snapshot.val();
+            let totalVotos = 0;
+            let votosPorSecao = {};
+            let votosPorCandidato = {
+                "Francisco Luciano": 0,
+                "Miguel Soares De Nóbrega": 0
+            };
+            let votosPorHora = {};
+
+            for (let key in votos) {
+                const voto = votos[key];
+                totalVotos++;
+
+                // Contagem de votos por seção
+                if (!votosPorSecao[voto.secao]) {
+                    votosPorSecao[voto.secao] = {
+                        "Francisco Luciano": 0,
+                        "Miguel Soares De Nóbrega": 0
+                    };
+                }
+                votosPorSecao[voto.secao][voto.candidato]++;
+
+                // Contagem de votos por candidato
+                votosPorCandidato[voto.candidato]++;
+
+                // Contagem de votos por hora
+                const hora = new Date(voto.timestamp).getHours();
+                if (!votosPorHora[hora]) {
+                    votosPorHora[hora] = 0;
+                }
+                votosPorHora[hora]++;
+            }
+
+            // Atualizar total de votos
+            document.getElementById('total-votos').textContent = `Total de votos registrados: ${totalVotos}`;
+
+            // Atualizar desempenho por horário
+            let desempenhoHtml = '<h3>Desempenho por Horário</h3><ul>';
+            for (let hora in votosPorHora) {
+                desempenhoHtml += `<li>${hora}h: ${votosPorHora[hora]} votos</li>`;
+            }
+            desempenhoHtml += '</ul>';
+            document.getElementById('desempenho-horario').innerHTML = desempenhoHtml;
+
+            // Atualizar status da eleição
+            const vencedor = votosPorCandidato["Francisco Luciano"] > votosPorCandidato["Miguel Soares De Nóbrega"] ? "Francisco Luciano" : "Miguel Soares De Nóbrega";
+            const porcentagemVencedor = (votosPorCandidato[vencedor] / totalVotos * 100).toFixed(2);
+            if (porcentagemVencedor > 51) {
+                document.getElementById('status-eleicao').textContent = `${vencedor} está eleito com ${porcentagemVencedor}% dos votos.`;
+            } else {
+                document.getElementById('status-eleicao').textContent = 'Nenhum candidato atingiu 51% dos votos. Haverá segundo turno.';
+            }
+
+            // Atualizar tabela de votos por seção
+            const tabelaVotosSecao = document.getElementById('votos-secao').getElementsByTagName('tbody')[0];
+            tabelaVotosSecao.innerHTML = '';
+            for (let secao in votosPorSecao) {
+                const row = tabelaVotosSecao.insertRow();
+                row.insertCell(0).textContent = secao;
+                row.insertCell(1).textContent = votosPorSecao[secao]["Francisco Luciano"];
+                row.insertCell(2).textContent = votosPorSecao[secao]["Miguel Soares De Nóbrega"];
+                row.insertCell(3).textContent = votosPorSecao[secao]["Francisco Luciano"] + votosPorSecao[secao]["Miguel Soares De Nóbrega"];
+            }
+        }
+
+        onValue(votosRef, atualizarAnalise);
+    </script>
+</body>
+</html>
