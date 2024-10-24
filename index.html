@@ -5,67 +5,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minha Urna Digital - Eleição Presidente Escolar</title>
     <style>
+        :root {
+            --primary-color: #00008b;
+            --secondary-color: #4169e1;
+            --background-color: #f0f8ff;
+            --text-color: #333;
+            --border-radius: 8px;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f8ff;
-            color: #00008b;
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
             line-height: 1.6;
             margin: 0;
             padding: 0;
         }
+
         .container {
-            width: 80%;
+            width: 90%;
+            max-width: 1200px;
             margin: auto;
-            overflow: hidden;
             padding: 20px;
         }
+
         header {
-            background: #00008b;
+            background: var(--primary-color);
             color: #ffffff;
-            padding-top: 30px;
-            min-height: 70px;
-            border-bottom: #ffffff 3px solid;
+            padding: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+
         header h1 {
             text-align: center;
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
+
         nav {
-            background: #4169e1;
-            color: #ffffff;
+            background: var(--secondary-color);
             padding: 10px 0;
+            margin-bottom: 20px;
         }
+
         nav ul {
             padding: 0;
             list-style: none;
+            text-align: center;
         }
+
         nav li {
             display: inline;
-            margin-right: 20px;
+            margin: 0 15px;
         }
+
         nav a {
             color: #ffffff;
             text-decoration: none;
             font-size: 18px;
+            transition: color 0.3s ease;
         }
-        .urna {
+
+        nav a:hover {
+            color: #f0f0f0;
+        }
+
+        .info, .urna {
             background: #ffffff;
-            border: 1px solid #00008b;
+            border: 1px solid var(--primary-color);
             padding: 20px;
             margin-top: 20px;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+
+        select, .btn {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: var(--border-radius);
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        select {
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 12px auto;
+        }
+
         .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #00008b;
+            background: var(--primary-color);
             color: #ffffff;
-            text-decoration: none;
             border: none;
-            border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
+
         .btn:hover {
-            background: #0000cd;
+            background: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+            }
         }
     </style>
 </head>
@@ -81,7 +134,7 @@
         </ul>
     </nav>
     <div class="container">
-        <section id="info">
+        <section id="info" class="info">
             <h2>Informações sobre a Eleição</h2>
             <p>O presidente Escolar ficará eleito durante 2 anos. Ele terá como sede a instituição Pratonato, localizada em Cascavel CE, e comandará as escolas Vicentinas por todo o mundo. Como é um cargo para jovens, os candidatos podem ter entre 12 e 17 anos.</p>
             <p>Se nenhum candidato atingir 51% dos votos dos eleitores no primeiro turno, haverá um segundo turno entre os dois candidatos mais votados. Se no segundo turno nenhum candidato atingir 51%, poderá haver um terceiro turno.</p>
@@ -112,18 +165,15 @@
                     <option value="100">Seção 100</option>
                     <option value="principal">Seção Principal Do Pratonato</option>
                 </select>
-                <br><br>
                 <button type="submit" class="btn">Confirmar Voto</button>
             </form>
         </section>
     </div>
 
     <script type="module">
-        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyARCZXNgStaYptTeFavV8EshQouNAMjNGU",
             authDomain: "lifeword-233dd.firebaseapp.com",
@@ -135,15 +185,30 @@
             measurementId: "G-P86GS65BEB"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
+
+        const candidatoSelect = document.getElementById('candidato');
+        const secaoSelect = document.getElementById('secao');
+
+        // Load saved selections from localStorage
+        candidatoSelect.value = localStorage.getItem('selectedCandidato') || '';
+        secaoSelect.value = localStorage.getItem('selectedSecao') || '';
+
+        // Save selections to localStorage when they change
+        candidatoSelect.addEventListener('change', function() {
+            localStorage.setItem('selectedCandidato', this.value);
+        });
+
+        secaoSelect.addEventListener('change', function() {
+            localStorage.setItem('selectedSecao', this.value);
+        });
 
         document.getElementById('votacao-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const candidato = document.getElementById('candidato').value;
-            const secao = document.getElementById('secao').value;
+            const candidato = candidatoSelect.value;
+            const secao = secaoSelect.value;
             
             const votoRef = ref(database, 'votos');
             const novoVotoRef = push(votoRef);
@@ -153,7 +218,7 @@
                 timestamp: Date.now()
             }).then(() => {
                 alert('Voto registrado com sucesso!');
-                document.getElementById('votacao-form').reset();
+                // We're not resetting the form anymore
             }).catch((error) => {
                 console.error("Erro ao registrar voto: ", error);
                 alert('Erro ao registrar voto. Por favor, tente novamente.');
