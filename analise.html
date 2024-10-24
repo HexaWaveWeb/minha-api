@@ -3,103 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análise - Eleição Presidente Escolar</title>
+    <title>Análise Detalhada - Eleição Presidente Escolar</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --primary-color: #00008b;
+            --secondary-color: #4169e1;
+            --background-color: #f0f8ff;
+            --text-color: #333;
+            --border-radius: 8px;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f8ff;
-            color: #00008b;
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
             line-height: 1.6;
             margin: 0;
             padding: 0;
         }
+
         .container {
-            width: 80%;
+            width: 95%;
+            max-width: 1400px;
             margin: auto;
-            overflow: hidden;
             padding: 20px;
         }
+
         header {
-            background: #00008b;
+            background: var(--primary-color);
             color: #ffffff;
-            padding-top: 30px;
-            min-height: 70px;
-            border-bottom: #ffffff 3px solid;
+            padding: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+
         header h1 {
             text-align: center;
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
+
         nav {
-            background: #4169e1;
-            color: #ffffff;
+            background: var(--secondary-color);
             padding: 10px 0;
+            margin-bottom: 20px;
         }
+
         nav ul {
             padding: 0;
             list-style: none;
+            text-align: center;
         }
+
         nav li {
             display: inline;
-            margin-right: 20px;
+            margin: 0 15px;
         }
+
         nav a {
             color: #ffffff;
-            
             text-decoration: none;
             font-size: 18px;
+            transition: color 0.3s ease;
         }
+
+        nav a:hover {
+            color: #f0f0f0;
+        }
+
         .analise {
             background: #ffffff;
-            border: 1px solid #00008b;
+            border: 1px solid var(--primary-color);
             padding: 20px;
             margin-top: 20px;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .card h3 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 20px;
         }
+
         th, td {
-            border: 1px solid #00008b;
-            padding: 8px;
+            border: 1px solid #e0e0e0;
+            padding: 12px;
             text-align: left;
         }
+
         th {
-            background-color: #4169e1;
+            background-color: var(--secondary-color);
             color: #ffffff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f8f8;
+        }
+
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 300px;
+            width: 100%;
+        }
+
+        .icon {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        #ultima-atualizacao {
+            text-align: right;
+            font-style: italic;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+                padding: 10px;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            .chart-container {
+                height: 200px;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Análise da Eleição</h1>
+        <h1><i class="fas fa-chart-line icon"></i>Análise Detalhada da Eleição</h1>
     </header>
     <nav>
         <ul>
-            <li><a href="index.html">Início</a></li>
-            <li><a href="resultados.html">Resultados</a></li>
-            <li><a href="#analise">Análise</a></li>
+            <li><a href="index.html"><i class="fas fa-home icon"></i>Início</a></li>
+            <li><a href="resultados.html"><i class="fas fa-poll icon"></i>Resultados</a></li>
+            <li><a href="#analise"><i class="fas fa-chart-bar icon"></i>Análise</a></li>
         </ul>
     </nav>
     <div class="container">
         <section id="analise" class="analise">
-            <h2>Análise Detalhada</h2>
-            <div id="total-votos"></div>
-            <div id="desempenho-horario"></div>
-            <div id="ultrapassagens"></div>
-            <div id="status-eleicao"></div>
-            <h3>Votos por Seção</h3>
-            <table id="votos-secao">
-                <thead>
-                    <tr>
-                        <th>Seção</th>
-                        <th>Francisco Luciano</th>
-                        <th>Miguel Soares De Nóbrega</th>
-                        <th>Total</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <div class="card">
+                <h3><i class="fas fa-vote-yea icon"></i>Resumo da Votação</h3>
+                <div id="total-votos"></div>
+                <div id="status-eleicao"></div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-chart-pie icon"></i>Distribuição de Votos por Candidato</h3>
+                <div class="chart-container">
+                    <canvas id="chart-candidatos"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-clock icon"></i>Desempenho por Horário</h3>
+                <div class="chart-container">
+                    <canvas id="chart-horario"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-map-marker-alt icon"></i>Votos por Seção</h3>
+                <div class="chart-container">
+                    <canvas id="chart-secao"></canvas>
+                </div>
+                <table id="votos-secao">
+                    <thead>
+                        <tr>
+                            <th>Seção</th>
+                            <th>Francisco Luciano</th>
+                            <th>Miguel Soares De Nóbrega</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-chart-line icon"></i>Evolução dos Votos ao Longo do Tempo</h3>
+                <div class="chart-container">
+                    <canvas id="chart-evolucao"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-balance-scale icon"></i>Comparação de Votos por Hora</h3>
+                <div class="chart-container">
+                    <canvas id="chart-comparacao-hora"></canvas>
+                </div>
+            </div>
+
+            <div id="ultima-atualizacao"></div>
         </section>
     </div>
 
@@ -123,6 +242,8 @@
 
         const votosRef = ref(database, 'votos');
 
+        let chartCandidatos, chartHorario, chartSecao, chartEvolucao, chartComparacaoHora;
+
         function atualizarAnalise(snapshot) {
             const votos = snapshot.val();
             let totalVotos = 0;
@@ -132,6 +253,7 @@
                 "Miguel Soares De Nóbrega": 0
             };
             let votosPorHora = {};
+            let evolucaoVotos = {};
 
             for (let key in votos) {
                 const voto = votos[key];
@@ -150,32 +272,103 @@
                 votosPorCandidato[voto.candidato]++;
 
                 // Contagem de votos por hora
-                const hora = new Date(voto.timestamp).getHours();
+                const data = new Date(voto.timestamp);
+                const hora = data.getHours();
                 if (!votosPorHora[hora]) {
-                    votosPorHora[hora] = 0;
+                    votosPorHora[hora] = {
+                        "Francisco Luciano": 0,
+                        "Miguel Soares De Nóbrega": 0
+                    };
                 }
-                votosPorHora[hora]++;
+                votosPorHora[hora][voto.candidato]++;
+
+                // Evolução dos votos ao longo do tempo
+                const dataFormatada = data.toISOString().split('T')[0];
+                if (!evolucaoVotos[dataFormatada]) {
+                    evolucaoVotos[dataFormatada] = {
+                        "Francisco Luciano": 0,
+                        "Miguel Soares De Nóbrega": 0
+                    };
+                }
+                evolucaoVotos[dataFormatada][voto.candidato]++;
             }
 
-            // Atualizar total de votos
-            document.getElementById('total-votos').textContent = `Total de votos registrados: ${totalVotos}`;
+            // Atualizar total de votos e status da eleição
+            document.getElementById('total-votos').innerHTML = `<h4><i class="fas fa-users icon"></i>Total de votos registrados: ${totalVotos}</h4>`;
 
-            // Atualizar desempenho por horário
-            let desempenhoHtml = '<h3>Desempenho por Horário</h3><ul>';
-            for (let hora in votosPorHora) {
-                desempenhoHtml += `<li>${hora}h: ${votosPorHora[hora]} votos</li>`;
-            }
-            desempenhoHtml += '</ul>';
-            document.getElementById('desempenho-horario').innerHTML = desempenhoHtml;
-
-            // Atualizar status da eleição
             const vencedor = votosPorCandidato["Francisco Luciano"] > votosPorCandidato["Miguel Soares De Nóbrega"] ? "Francisco Luciano" : "Miguel Soares De Nóbrega";
             const porcentagemVencedor = (votosPorCandidato[vencedor] / totalVotos * 100).toFixed(2);
-            if (porcentagemVencedor > 51) {
-                document.getElementById('status-eleicao').textContent = `${vencedor} está eleito com ${porcentagemVencedor}% dos votos.`;
-            } else {
-                document.getElementById('status-eleicao').textContent = 'Nenhum candidato atingiu 51% dos votos. Haverá segundo turno.';
-            }
+            document.getElementById('status-eleicao').innerHTML = `<h4><i class="fas fa-trophy icon"></i>Status: ${vencedor} está à frente com ${porcentagemVencedor}% dos votos.</h4>`;
+
+            // Atualizar gráfico de distribuição de votos por candidato
+            if (chartCandidatos) chartCandidatos.destroy();
+            chartCandidatos = new Chart(document.getElementById('chart-candidatos'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(votosPorCandidato),
+                    datasets: [{
+                        data: Object.values(votosPorCandidato),
+                        backgroundColor: ['#FF6384', '#36A2EB']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Atualizar gráfico de desempenho por horário
+            if (chartHorario) chartHorario.destroy();
+            chartHorario = new Chart(document.getElementById('chart-horario'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(votosPorHora),
+                    datasets: [{
+                        label: 'Votos por Hora',
+                        data: Object.values(votosPorHora).map(v => v["Francisco Luciano"] + v["Miguel Soares De Nóbrega"]),
+                        backgroundColor: '#4169e1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Atualizar gráfico de votos por seção
+            if (chartSecao) chartSecao.destroy();
+            chartSecao = new Chart(document.getElementById('chart-secao'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(votosPorSecao),
+                    datasets: [
+                        {
+                            label: 'Francisco Luciano',
+                            data: Object.values(votosPorSecao).map(v => v["Francisco Luciano"]),
+                            backgroundColor: '#FF6384'
+                        },
+                        {
+                            label: 'Miguel Soares De Nóbrega',
+                            data: Object.values(votosPorSecao).map(v => v["Miguel Soares De Nóbrega"]),
+                            backgroundColor: '#36A2EB'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
 
             // Atualizar tabela de votos por seção
             const tabelaVotosSecao = document.getElementById('votos-secao').getElementsByTagName('tbody')[0];
@@ -187,6 +380,72 @@
                 row.insertCell(2).textContent = votosPorSecao[secao]["Miguel Soares De Nóbrega"];
                 row.insertCell(3).textContent = votosPorSecao[secao]["Francisco Luciano"] + votosPorSecao[secao]["Miguel Soares De Nóbrega"];
             }
+
+            // Atualizar gráfico de evolução dos votos
+            if (chartEvolucao) chartEvolucao.destroy();
+            chartEvolucao = new Chart(document.getElementById('chart-evolucao'), {
+                type: 'line',
+                data: {
+                    labels: Object.keys(evolucaoVotos),
+                    datasets:  [
+                        {
+                            label: 'Francisco Luciano',
+                            data: Object.values(evolucaoVotos).map(v => v["Francisco Luciano"]),
+                            borderColor: '#FF6384',
+                            fill: false
+                        },
+                        {
+                            label: 'Miguel Soares De Nóbrega',
+                            data: Object.values(evolucaoVotos).map(v => v["Miguel Soares De Nóbrega"]),
+                            borderColor: '#36A2EB',
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Atualizar gráfico de comparação de votos por hora
+            if (chartComparacaoHora) chartComparacaoHora.destroy();
+            chartComparacaoHora = new Chart(document.getElementById('chart-comparacao-hora'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(votosPorHora),
+                    datasets: [
+                        {
+                            label: 'Francisco Luciano',
+                            data: Object.values(votosPorHora).map(v => v["Francisco Luciano"]),
+                            backgroundColor: '#FF6384'
+                        },
+                        {
+                            label: 'Miguel Soares De Nóbrega',
+                            data: Object.values(votosPorHora).map(v => v["Miguel Soares De Nóbrega"]),
+                            backgroundColor: '#36A2EB'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Atualizar hora da última atualização
+            const agora = new Date();
+            document.getElementById('ultima-atualizacao').textContent = `Última atualização: ${agora.toLocaleString()}`;
         }
 
         onValue(votosRef, atualizarAnalise);
