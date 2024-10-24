@@ -3,78 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultados - Eleição Presidente Escolar</title>
+    <title>Resultados do Segundo Turno - Eleição Presidente Escolar</title>
     <style>
+        :root {
+            --primary-color: #00008b;
+            --secondary-color: #4169e1;
+            --background-color: #f0f8ff;
+            --text-color: #333;
+            --border-radius: 8px;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f8ff;
-            color: #00008b;
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
             line-height: 1.6;
             margin: 0;
             padding: 0;
         }
+
         .container {
-            width: 80%;
+            width: 90%;
+            max-width: 1200px;
             margin: auto;
-            overflow: hidden;
             padding: 20px;
         }
+
         header {
-            background: #00008b;
+            background: var(--primary-color);
             color: #ffffff;
-            padding-top: 30px;
-            min-height: 70px;
-            border-bottom: #ffffff 3px solid;
+            padding: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+
         header h1 {
             text-align: center;
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
+
         nav {
-            background: #4169e1;
-            color: #ffffff;
+            background: var(--secondary-color);
             padding: 10px 0;
+            margin-bottom: 20px;
         }
+
         nav ul {
             padding: 0;
             list-style: none;
+            text-align: center;
         }
+
         nav li {
             display: inline;
-            margin-right: 20px;
+            margin: 0 15px;
         }
+
         nav a {
             color: #ffffff;
             text-decoration: none;
             font-size: 18px;
+            transition: color 0.3s ease;
         }
+
+        nav a:hover {
+            color: #f0f0f0;
+        }
+
         .resultados {
             background: #ffffff;
-            border: 1px solid #00008b;
+            border: 1px solid var(--primary-color);
             padding: 20px;
             margin-top: 20px;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
+
         .candidato {
             margin-bottom: 20px;
-            padding: 10px;
-            border: 1px solid #4169e1;
-            border-radius: 5px;
+            padding: 15px;
+            border: 1px solid var(--secondary-color);
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
         }
+
+        .candidato:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
         .candidato h3 {
             margin-top: 0;
+            color: var(--primary-color);
         }
+
         .porcentagem {
             font-weight: bold;
             font-size: 1.2em;
+            color: var(--secondary-color);
         }
-        #turno-selector {
+
+        .progress-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .progress {
+            height: 20px;
+            background-color: var(--secondary-color);
+            border-radius: 5px;
+            transition: width 0.5s ease-in-out;
+        }
+
+        #total-progress {
             margin-top: 20px;
+            font-weight: bold;
+        }
+
+        #status-eleicao {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: var(--border-radius);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Resultados da Eleição</h1>
+        <h1>Resultados do Segundo Turno</h1>
     </header>
     <nav>
         <ul>
@@ -84,14 +151,16 @@
         </ul>
     </nav>
     <div class="container">
-        <div id="turno-selector">
-            <button id="primeiro-turno">Primeiro Turno</button>
-            <button id="segundo-turno" disabled>Segundo Turno</button>
-        </div>
         <section id="resultados" class="resultados">
             <h2>Resultados da Votação</h2>
             <div id="candidatos"></div>
             <div id="total-votos"></div>
+            <div id="total-progress">
+                <p>Progresso total da votação:</p>
+                <div class="progress-bar">
+                    <div id="total-progress-bar" class="progress"></div>
+                </div>
+            </div>
             <div id="status-eleicao"></div>
         </section>
     </div>
@@ -118,6 +187,9 @@
         const candidatosElement = document.getElementById('candidatos');
         const totalVotosElement = document.getElementById('total-votos');
         const statusEleicaoElement = document.getElementById('status-eleicao');
+        const totalProgressBar = document.getElementById('total-progress-bar');
+
+        const TOTAL_VOTOS_LIMITE = 1299;
 
         function atualizarResultados(snapshot) {
             const votos = snapshot.val();
@@ -134,42 +206,43 @@
                 totalVotos++;
             }
 
+            const candidatosOrdenados = Object.entries(resultados).sort((a, b) => b[1] - a[1]);
+
             candidatosElement.innerHTML = '';
-            for (let candidato in resultados) {
-                const porcentagem = (resultados[candidato] / totalVotos * 100).toFixed(2);
+            for (let [candidato, votos] of candidatosOrdenados) {
+                const porcentagem = (votos / totalVotos * 100).toFixed(2);
                 const candidatoElement = document.createElement('div');
                 candidatoElement.className = 'candidato';
                 candidatoElement.innerHTML = `
                     <h3>${candidato}</h3>
-                    <p>Votos: ${resultados[candidato]}</p>
+                    <p>Votos: ${votos}</p>
                     <p class="porcentagem">${porcentagem}%</p>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: ${porcentagem}%"></div>
+                    </div>
                 `;
                 candidatosElement.appendChild(candidatoElement);
             }
 
             totalVotosElement.textContent = `Total de votos: ${totalVotos}`;
 
-            const vencedor = Object.keys(resultados).reduce((a, b) => resultados[a] > resultados[b] ? a : b);
-            const porcentagemVencedor = (resultados[vencedor] / totalVotos * 100).toFixed(2);
+            const progressoTotal = (totalVotos / TOTAL_VOTOS_LIMITE * 100).toFixed(2);
+            totalProgressBar.style.width = `${progressoTotal}%`;
+            totalProgressBar.textContent = `${progressoTotal}%`;
 
-            if (porcentagemVencedor > 51) {
-                statusEleicaoElement.textContent = `${vencedor} está eleito com ${porcentagemVencedor}% dos votos.`;
+            if (totalVotos >= TOTAL_VOTOS_LIMITE) {
+                const vencedor = candidatosOrdenados[0][0];
+                const porcentagemVencedor = (candidatosOrdenados[0][1] / totalVotos * 100).toFixed(2);
+                statusEleicaoElement.textContent = `Votação encerrada. ${vencedor} está eleito com ${porcentagemVencedor}% dos votos.`;
+                statusEleicaoElement.style.backgroundColor = '#4CAF50';
+                statusEleicaoElement.style.color = 'white';
             } else {
-                statusEleicaoElement.textContent = 'Nenhum candidato atingiu 51% dos votos. Haverá segundo turno.';
-                document.getElementById('segundo-turno').disabled = false;
+                const votosFaltantes = TOTAL_VOTOS_LIMITE - totalVotos;
+                statusEleicaoElement.textContent = `Faltam ${votosFaltantes} votos para encerrar a votação.`;
             }
         }
 
         onValue(votosRef, atualizarResultados);
-
-        document.getElementById('primeiro-turno').addEventListener('click', () => {
-            onValue(votosRef, atualizarResultados);
-        });
-
-        document.getElementById('segundo-turno').addEventListener('click', () => {
-            // Lógica para o segundo turno (a ser implementada)
-            alert('Segundo turno ainda não implementado.');
-        });
     </script>
 </body>
 </html>
