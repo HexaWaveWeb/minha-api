@@ -3,69 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minha Urna Digital - Segundo Turno</title>
+    <title>Minha Urna Digital - Eleição Presidente Escolar</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f8ff;
             color: #00008b;
+            line-height: 1.6;
             margin: 0;
             padding: 0;
         }
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
             padding: 20px;
         }
-        h1 {
+        header {
+            background: #00008b;
+            color: #ffffff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #ffffff 3px solid;
+        }
+        header h1 {
             text-align: center;
-            color: #0000cd;
+        }
+        nav {
+            background: #4169e1;
+            color: #ffffff;
+            padding: 10px 0;
+        }
+        nav ul {
+            padding: 0;
+            list-style: none;
+        }
+        nav li {
+            display: inline;
+            margin-right: 20px;
+        }
+        nav a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 18px;
         }
         .urna {
-            background-color: #ffffff;
-            border: 2px solid #0000cd;
-            border-radius: 10px;
+            background: #ffffff;
+            border: 1px solid #00008b;
             padding: 20px;
             margin-top: 20px;
+            border-radius: 5px;
         }
-        .candidato {
-            margin-bottom: 10px;
-        }
-        .secao {
-            margin-top: 20px;
-        }
-        select, button {
-            margin-top: 10px;
-        }
-        .links {
-            margin-top: 20px;
-            text-align: center;
-        }
-        .links a {
-            margin: 0 10px;
-            color: #0000cd;
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #00008b;
+            color: #ffffff;
             text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #0000cd;
         }
     </style>
 </head>
 <body>
+    <header>
+        <h1>Minha Urna Digital</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="#home">Início</a></li>
+            <li><a href="resultados.html">Resultados</a></li>
+            <li><a href="analise.html">Análise</a></li>
+        </ul>
+    </nav>
     <div class="container">
-        <h1>Minha Urna Digital - Segundo Turno</h1>
-        
-        <div class="urna">
-            <h2>Vote no seu candidato:</h2>
-            <div class="candidato">
-                <input type="radio" id="francisco" name="candidato" value="Francisco Luciano">
-                <label for="francisco">Francisco Luciano</label>
-            </div>
-            <div class="candidato">
-                <input type="radio" id="miguel" name="candidato" value="Miguel">
-                <label for="miguel">Miguel</label>
-            </div>
-            
-            <div class="secao">
-                <label for="secao">Escolha sua seção:</label>
-                <select id="secao">
+        <section id="info">
+            <h2>Informações sobre a Eleição</h2>
+            <p>O presidente Escolar ficará eleito durante 2 anos. Ele terá como sede a instituição Pratonato, localizada em Cascavel CE, e comandará as escolas Vicentinas por todo o mundo. Como é um cargo para jovens, os candidatos podem ter entre 12 e 17 anos.</p>
+            <p>Se nenhum candidato atingir 51% dos votos dos eleitores no primeiro turno, haverá um segundo turno entre os dois candidatos mais votados. Se no segundo turno nenhum candidato atingir 51%, poderá haver um terceiro turno.</p>
+            <p>A votação inicia às 17:10, mas o usuário já pode votar antes desse horário.</p>
+            <p>O presidente atual é Miguel.</p>
+        </section>
+        <section class="urna">
+            <h2>Urna de Votação</h2>
+            <form id="votacao-form">
+                <h3>Escolha seu candidato:</h3>
+                <select id="candidato" required>
+                    <option value="">Selecione um candidato</option>
+                    <option value="Francisco Luciano">Francisco Luciano</option>
+                    <option value="Miguel Soares De Nóbrega">Miguel Soares De Nóbrega</option>
+                </select>
+                <h3>Escolha sua seção:</h3>
+                <select id="secao" required>
+                    <option value="">Selecione uma seção</option>
                     <option value="10">Seção 10</option>
                     <option value="20">Seção 20</option>
                     <option value="30">Seção 30</option>
@@ -78,51 +112,53 @@
                     <option value="100">Seção 100</option>
                     <option value="principal">Seção Principal Do Pratonato</option>
                 </select>
-            </div>
-            
-            <button onclick="votar()">Confirmar Voto</button>
-        </div>
-        
-        <div class="links">
-            <a href="resultados.html">Ver Resultados</a>
-            <a href="analises.html">Análise Detalhada</a>
-        </div>
+                <br><br>
+                <button type="submit" class="btn">Confirmar Voto</button>
+            </form>
+        </section>
     </div>
 
     <script type="module">
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+        import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyCF50W92_ZmSLGcDLlOr8r7QtF__JchP50",
-            authDomain: "webuserdata.firebaseapp.com",
-            databaseURL: "https://webuserdata-default-rtdb.firebaseio.com",
-            projectId: "webuserdata",
-            storageBucket: "webuserdata.appspot.com",
-            messagingSenderId: "996591404387",
-            appId: "1:996591404387:web:0d2f5d16b9494de4997f56",
-            measurementId: "G-VTDKLXL5TS"
+            apiKey: "AIzaSyARCZXNgStaYptTeFavV8EshQouNAMjNGU",
+            authDomain: "lifeword-233dd.firebaseapp.com",
+            databaseURL: "https://lifeword-233dd-default-rtdb.firebaseio.com",
+            projectId: "lifeword-233dd",
+            storageBucket: "lifeword-233dd.appspot.com",
+            messagingSenderId: "323873998933",
+            appId: "1:323873998933:web:75a30b109e175a3d46acdc",
+            measurementId: "G-P86GS65BEB"
         };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        window.votar = function() {
-            const candidato = document.querySelector('input[name="candidato"]:checked').value;
+        document.getElementById('votacao-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const candidato = document.getElementById('candidato').value;
             const secao = document.getElementById('secao').value;
-
+            
             const votoRef = ref(database, 'votos');
-            push(votoRef, {
+            const novoVotoRef = push(votoRef);
+            set(novoVotoRef, {
                 candidato: candidato,
                 secao: secao,
                 timestamp: Date.now()
+            }).then(() => {
+                alert('Voto registrado com sucesso!');
+                document.getElementById('votacao-form').reset();
+            }).catch((error) => {
+                console.error("Erro ao registrar voto: ", error);
+                alert('Erro ao registrar voto. Por favor, tente novamente.');
             });
-
-            alert('Voto registrado com sucesso!');
-        }
+        });
     </script>
 </body>
 </html>
