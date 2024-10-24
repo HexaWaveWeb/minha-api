@@ -217,7 +217,7 @@
                 secao: secao,
                 timestamp: Date.now()
             }).then(() => {
-                alert('Voto registrado com sucesso!');
+                console.log('Voto registrado com sucesso!');
                 // We're not resetting the form anymore
             }).catch((error) => {
                 console.error("Erro ao registrar voto: ", error);
