@@ -3,55 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultados da Votação - Segundo Turno</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Resultados - Eleição Presidente Escolar</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f8ff;
             color: #00008b;
+            line-height: 1.6;
             margin: 0;
             padding: 0;
         }
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
             padding: 20px;
         }
-        h1, h2 {
+        header {
+            background: #00008b;
+            color: #ffffff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #ffffff 3px solid;
+        }
+        header h1 {
             text-align: center;
-            color: #0000cd;
         }
-        .resultado {
-            background-color: #ffffff;
-            border: 2px solid #0000cd;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
+        nav {
+            background: #4169e1;
+            color: #ffffff;
+            padding: 10px 0;
         }
-        #graficoResultado {
-            max-width: 600px;
-            margin: 0 auto;
+        nav ul {
+            padding: 0;
+            list-style: none;
         }
-        .candidato {
-            margin-bottom: 10px;
+        nav li {
+            display: inline;
+            margin-right: 20px;
+        }
+        nav a {
+            color: #ffffff;
+            text-decoration: none;
             font-size: 18px;
         }
-        .eleito {
-            color: #008000;
+        .resultados {
+            background: #ffffff;
+            border: 1px solid #00008b;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        .candidato {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #4169e1;
+            border-radius: 5px;
+        }
+        .candidato h3 {
+            margin-top: 0;
+        }
+        .porcentagem {
             font-weight: bold;
+            font-size: 1.2em;
+        }
+        #turno-selector {
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
+    <header>
+        <h1>Resultados da Eleição</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="index.html">Início</a></li>
+            <li><a href="#resultados">Resultados</a></li>
+            <li><a href="analise.html">Análise</a></li>
+        </ul>
+    </nav>
     <div class="container">
-        <h1>Resultados da Votação - Segundo Turno</h1>
-        
-        <div class="resultado">
-            <h2>Apuração dos Votos</h2>
-            <div id="resultadoVotacao"></div>
-            <canvas id="graficoResultado"></canvas>
+        <div id="turno-selector">
+            <button id="primeiro-turno">Primeiro Turno</button>
+            <button id="segundo-turno" disabled>Segundo Turno</button>
         </div>
+        <section id="resultados" class="resultados">
+            <h2>Resultados da Votação</h2>
+            <div id="candidatos"></div>
+            <div id="total-votos"></div>
+            <div id="status-eleicao"></div>
+        </section>
     </div>
 
     <script type="module">
@@ -59,80 +101,75 @@
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyCF50W92_ZmSLGcDLlOr8r7QtF__JchP50",
-            authDomain: "webuserdata.firebaseapp.com",
-            databaseURL: "https://webuserdata-default-rtdb.firebaseio.com",
-            projectId: "webuserdata",
-            storageBucket: "webuserdata.appspot.com",
-            messagingSenderId: "996591404387",
-            appId: "1:996591404387:web:0d2f5d16b9494de4997f56",
-            measurementId: "G-VTDKLXL5TS"
+            apiKey: "AIzaSyARCZXNgStaYptTeFavV8EshQouNAMjNGU",
+            authDomain: "lifeword-233dd.firebaseapp.com",
+            databaseURL: "https://lifeword-233dd-default-rtdb.firebaseio.com",
+            projectId: "lifeword-233dd",
+            storageBucket: "lifeword-233dd.appspot.com",
+            messagingSenderId: "323873998933",
+            appId: "1:323873998933:web:75a30b109e175a3d46acdc",
+            measurementId: "G-P86GS65BEB"
         };
 
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
         const votosRef = ref(database, 'votos');
-        onValue(votosRef, (snapshot) => {
+        const candidatosElement = document.getElementById('candidatos');
+        const totalVotosElement = document.getElementById('total-votos');
+        const statusEleicaoElement = document.getElementById('status-eleicao');
+
+        function atualizarResultados(snapshot) {
             const votos = snapshot.val();
-            const resultado = contarVotos(votos);
-            exibirResultado(resultado);
-            criarGrafico(resultado);
-        });
+            const resultados = {};
+            let totalVotos = 0;
 
-        function contarVotos(votos) {
-            const contagem = {
-                "Francisco Luciano": 0,
-                "Miguel": 0
-            };
-            
-            for (const key in votos) {
+            for (let key in votos) {
                 const voto = votos[key];
-                contagem[voto.candidato]++;
+                if (resultados[voto.candidato]) {
+                    resultados[voto.candidato]++;
+                } else {
+                    resultados[voto.candidato] = 1;
+                }
+                totalVotos++;
             }
-            
-            return contagem;
-        }
 
-        function exibirResultado(resultado) {
-            const total = resultado["Francisco Luciano"] + resultado["Miguel"];
-            const resultadoElement = document.getElementById('resultadoVotacao');
-            resultadoElement.innerHTML = '';
-
-            const candidatos = Object.keys(resultado).sort((a, b) => resultado[b] - resultado[a]);
-
-            candidatos.forEach((candidato, index) => {
-                const votos = resultado[candidato];
-                const porcentagem = ((votos / total) * 100).toFixed(2);
-                const eleito = index === 0 && porcentagem > 50 ? ' <span class="eleito">ELEITO PELO POVO</span>' : '';
-                
+            candidatosElement.innerHTML = '';
+            for (let candidato in resultados) {
+                const porcentagem = (resultados[candidato] / totalVotos * 100).toFixed(2);
                 const candidatoElement = document.createElement('div');
                 candidatoElement.className = 'candidato';
-                candidatoElement.innerHTML = `${candidato}: ${votos} votos (${porcentagem}%)${eleito}`;
-                resultadoElement.appendChild(candidatoElement);
-            });
+                candidatoElement.innerHTML = `
+                    <h3>${candidato}</h3>
+                    <p>Votos: ${resultados[candidato]}</p>
+                    <p class="porcentagem">${porcentagem}%</p>
+                `;
+                candidatosElement.appendChild(candidatoElement);
+            }
+
+            totalVotosElement.textContent = `Total de votos: ${totalVotos}`;
+
+            const vencedor = Object.keys(resultados).reduce((a, b) => resultados[a] > resultados[b] ? a : b);
+            const porcentagemVencedor = (resultados[vencedor] / totalVotos * 100).toFixed(2);
+
+            if (porcentagemVencedor > 51) {
+                statusEleicaoElement.textContent = `${vencedor} está eleito com ${porcentagemVencedor}% dos votos.`;
+            } else {
+                statusEleicaoElement.textContent = 'Nenhum candidato atingiu 51% dos votos. Haverá segundo turno.';
+                document.getElementById('segundo-turno').disabled = false;
+            }
         }
 
-        function criarGrafico(resultado) {
-            const ctx = document.getElementById('graficoResultado').getContext('2d');
-            new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(resultado),
-                    datasets: [{
-                        data: Object.values(resultado),
-                        backgroundColor: ['#0000cd', '#00008b']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    title: {
-                        display: true,
-                        text: 'Distribuição dos Votos'
-                    }
-                }
-            });
-        }
+        onValue(votosRef, atualizarResultados);
+
+        document.getElementById('primeiro-turno').addEventListener('click', () => {
+            onValue(votosRef, atualizarResultados);
+        });
+
+        document.getElementById('segundo-turno').addEventListener('click', () => {
+            // Lógica para o segundo turno (a ser implementada)
+            alert('Segundo turno ainda não implementado.');
+        });
     </script>
 </body>
 </html>
