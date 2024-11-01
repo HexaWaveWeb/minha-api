@@ -1,72 +1,98 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lobby with Background Music</title>
+    <title>Carregando Jogo</title>
     <style>
-        body {
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
             font-family: Arial, sans-serif;
+        }
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            z-index: 1000;
+        }
+        .loading-content {
+            text-align: center;
+            color: #fff;
+        }
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .game-content {
+            display: none;
+            height: 100%;
             background-color: #f0f0f0;
-        }
-        .container {
             text-align: center;
-        }
-        h1 {
-            color: #333;
-        }
-        #playPauseBtn {
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            padding: 15px 32px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
-            cursor: pointer;
-            border-radius: 4px;
+            padding-top: 50px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome to the Lobby</h1>
-        <p>Background music is playing. Use the button below to control it.</p>
-        <button id="playPauseBtn">Pause Music</button>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="spinner" role="status">
+                <span class="sr-only">Carregando...</span>
+            </div>
+            <h2>Carregando o jogo...</h2>
+        </div>
+    </div>
+
+    <div class="game-content" id="gameContent">
+        <h1>Bem-vindo ao Jogo!</h1>
+        <p>O jogo está pronto para começar.</p>
+        <!-- Adicione aqui o conteúdo do seu jogo -->
     </div>
 
     <audio id="backgroundMusic" loop>
         <source src="som1.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
+        Seu navegador não suporta o elemento de áudio.
     </audio>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var audio = document.getElementById('backgroundMusic');
-            var playPauseBtn = document.getElementById('playPauseBtn');
+            const audio = document.getElementById('backgroundMusic');
+            const loadingScreen = document.getElementById('loadingScreen');
+            const gameContent = document.getElementById('gameContent');
 
-            // Start playing the music when the page loads
-            audio.play().catch(function(error) {
-                console.log("Autoplay was prevented. Please interact with the page to play the music.");
-                playPauseBtn.textContent = 'Play Music';
-            });
+            // Simula um tempo de carregamento (ajuste conforme necessário)
+            setTimeout(function() {
+                loadingScreen.style.display = 'none';
+                gameContent.style.display = 'block';
+                
+                // Tenta iniciar a música
+                audio.play().catch(function(error) {
+                    console.log("Reprodução automática foi impedida. O usuário precisa interagir com a página para iniciar a música.");
+                });
+            }, 3000); // 3 segundos de tela de carregamento
 
-            playPauseBtn.addEventListener('click', function() {
+            // Adiciona um ouvinte de clique no corpo para iniciar a música, caso a reprodução automática falhe
+            document.body.addEventListener('click', function() {
                 if (audio.paused) {
                     audio.play();
-                    playPauseBtn.textContent = 'Pause Music';
-                } else {
-                    audio.pause();
-                    playPauseBtn.textContent = 'Play Music';
                 }
-            });
+            }, { once: true });
         });
     </script>
 </body>
