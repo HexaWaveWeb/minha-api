@@ -1,15 +1,73 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página com Áudio</title>
+    <title>Lobby with Background Music</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        #playPauseBtn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>Welcome to the Lobby</h1>
+        <p>Background music is playing. Use the button below to control it.</p>
+        <button id="playPauseBtn">Pause Music</button>
+    </div>
 
-    <audio src="som1.mp3" autoplay>
-        Seu navegador não suporta o elemento de áudio.
+    <audio id="backgroundMusic" loop>
+        <source src="https://raw.githubusercontent.com/yourusername/yourrepository/main/som1.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
     </audio>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var audio = document.getElementById('backgroundMusic');
+            var playPauseBtn = document.getElementById('playPauseBtn');
+
+            // Start playing the music when the page loads
+            audio.play().catch(function(error) {
+                console.log("Autoplay was prevented. Please interact with the page to play the music.");
+                playPauseBtn.textContent = 'Play Music';
+            });
+
+            playPauseBtn.addEventListener('click', function() {
+                if (audio.paused) {
+                    audio.play();
+                    playPauseBtn.textContent = 'Pause Music';
+                } else {
+                    audio.pause();
+                    playPauseBtn.textContent = 'Play Music';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
